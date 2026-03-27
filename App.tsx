@@ -1,120 +1,143 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Platform, StatusBar as RNStatusBar } from 'react-native';
+import {
+StyleSheet, Text, View, TextInput, TouchableOpacity,
+SafeAreaView, Platform, StatusBar as RNStatusBar,
+Image, Button
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import Task from './src/components/Task';
+import { TaskList } from './src/components/TaskList';
 import { addTask, deleteTask, getAllTasks, updateTask, TaskItem } from './src/utils/handle-api';
 
 export default function App() {
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [text, setText] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [taskId, setTaskId] = useState("");
+const [tasks, setTasks] = useState<TaskItem[]>([]);
+const [text, setText] = useState("");
+const [isUpdating, setIsUpdating] = useState(false);
+const [taskId, setTaskId] = useState("");
 
-  useEffect(() => {
-    getAllTasks(setTasks);
-  }, []);
+useEffect(() => {
+getAllTasks(setTasks);
+}, []);
 
-  const updateMode = (_id: string, text: string) => {
-    setIsUpdating(true);
-    setText(text);
-    setTaskId(_id);
-  };
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.header}>Tarefas</Text>
+const updateMode = (id: string, t: string) => {
+setIsUpdating(true);
+setText(t);
+setTaskId(id);
+};
 
-        <View style={styles.top}>
-          <TextInput
-            style={styles.input}
-            placeholder="Adicione uma tarefa..."
-            value={text}
-            onChangeText={(val) => setText(val)}
-          />
+const limparTudo = () => {
+setTasks([]);
+};
 
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={
-              isUpdating
-                ? () => updateTask(taskId, text, setTasks, setText, setIsUpdating)
-                : () => addTask(text, setText, setTasks)
-            }
-          >
-            <Text style={styles.addButtonText}>
-              {isUpdating ? "Atualizar" : "Adicionar"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+return (
+<SafeAreaView style={styles.principal}>
 
-        <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-          {tasks.map((item) => (
-            <Task
-              key={item._id}
-              text={item.text}
-              updateMode={() => updateMode(item._id, item.text)}
-              deleteToDo={() => deleteTask(item._id, setTasks)}
-            />
-          ))}
-        </ScrollView>
-      </View>
-      <StatusBar style="auto" />
-    </SafeAreaView>
-  );
+<View style={styles.cabecalho}>
+<Image
+source={{ uri: 'https://cdn-icons-png.flaticon.com/512/4697/4697260.png' }}
+style={{ width: 40, height: 40, marginBottom: 5 }}
+/>
+<Text style={styles.titulo}>Meu App de Tarefas</Text>
+<Text>Total de itens: {tasks.length}</Text>
+</View>
+
+<View style={styles.inputArea}>
+<TextInput
+style={styles.meuInput}
+placeholder="Escreva aqui..."
+value={text}
+onChangeText={(v) => setText(v)}
+maxLength={30}
+keyboardType="default"
+/>
+
+<TouchableOpacity
+style={styles.botaoAdd}
+onPress={
+isUpdating
+? () => updateTask(taskId, text, setTasks, setText, setIsUpdating)
+: () => addTask(text, setText, setTasks)
+}
+>
+<Text style={{ color: 'white', fontWeight: 'bold' }}>
+{isUpdating ? "EDITAR" : "ADD"}
+</Text>
+</TouchableOpacity>
+</View>
+
+<TaskList
+tasks={tasks}
+onUpdate={updateMode}
+onDelete={(id) => deleteTask(id, setTasks)}
+/>
+
+<View style={{ padding: 10 }}>
+<Button
+title="Apagar lista toda"
+color="red"
+onPress={limparTudo}
+/>
+</View>
+
+<StatusBar style="auto" />
+</SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  tela: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  topo: {
+    padding: 30,
+    alignItems: 'center',
     backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
-  container: {
-    flex: 1,
-    maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center',
-    paddingHorizontal: 16,
+  minhaLogo: {
+    width: 45,
+    height: 45,
+    marginBottom: 10,
   },
-  header: {
-    marginTop: 16,
-    textAlign: 'center',
+  titulo: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#333',
   },
-  top: {
-    marginTop: 16,
+  textoContador: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+  },
+  areaInput: {
     flexDirection: 'row',
-    gap: 16,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  campoTexto: {
+    flex: 1,
+    height: 50,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginRight: 10,
+    fontSize: 16,
+  },
+  botaoAzul: {
+    backgroundColor: '#007bff',
+    paddingHorizontal: 20,
+    height: 50,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  input: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#000',
-    fontSize: 16,
-  },
-  addButton: {
-    backgroundColor: '#000',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  list: {
-    marginTop: 16,
-    flex: 1,
-  },
-  listContent: {
-    paddingBottom: 24,
+  espacoBotao: {
+    padding: 20,
+    marginTop: 10,
   }
 });
